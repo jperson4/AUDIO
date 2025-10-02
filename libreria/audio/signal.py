@@ -26,21 +26,26 @@ class Signal:
         
     # Operadores
     def __add__(self, other):
+        other = C(other)
         return Add(self, other)
         
     def __sub__(self, other):
+        other = C(other)
         return Sub(self, other)
     
     def __mul__(self, other):
+        other = C(other)
         return Mul(self, other)
     
     def __truediv__(self, other):
+        other = C(other)
         return Div(self, other)
     
     def __neg__(self):
         return Neg(self)
     
     def __pow__(self, power):
+        power = C(power)
         return Pow(self, power)
     
 class Add(Signal):
