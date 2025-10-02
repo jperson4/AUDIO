@@ -1,81 +1,9 @@
 from audio.const import *
-from audio.signal import Signal
+from audio.signal import *
 import numpy as np
 
+# osciladores y generadores que devuelven señales que en principio deben usarse para generar sonido
 
-class Const(Signal):
-    def __new__(cls, valor):
-        ''' De esta forma podemos hacer C(C(1)) y devolverá C(1) sin que haya problemas'''
-        if isinstance(valor, Signal):
-            return valor
-        return super(Const, cls).__new__(cls)    
-    
-    def __init__(self, valor: float):
-        if not isinstance(valor, Signal):
-            super().__init__()
-            self.valor = valor
-        
-    def fun(self, tiempo):
-        return self.valor
-
-class C(Const): # otra forma más corta de definir una constante
-    '''' Constante '''
-    def __init__(self, valor):
-        super().__init__(valor)
-        
-class Gate(Signal):
-    ''' Pasa self.true si es mayor que el threshold, si no pasa self.false'''
-    def __init__(self, signal, threshold=0, true=1, false=0):
-        super().__init__()
-        self.signal = C(signal)
-        self.threshold = C(threshold)
-        self.true = C(true)
-        self.false = C(false)
-        
-    def fun(self, tiempo):
-        _thresh = self.threshold.next(tiempo)
-        _sig = self.signal.next(tiempo)
-        _true = self.true.next(tiempo)
-        _false = self.false.next(tiempo)
-        return np.where(_sig >= _thresh, _true, _false)
-        
-class X(Signal): 
-    ''' Función lineal con pendiente y desplazamiento, elevada a una potencia
-        (mul*x + add)^pow'''
-    def __init__(self, mul=1, add=0, pow=1):
-        super().__init__()
-        self.mul = C(mul)
-        self.add = C(add)
-        self.pow = C(pow)
-        
-    def fun(self, tiempo):
-        _mul = self.mul.next(tiempo) / SRATE 
-        _add = self.add.next(tiempo)
-        _exp = self.pow.next(tiempo)
-        return (_mul * tiempo + _add) ** _exp
-        
-
-class Function(Signal):
-    ''' 
-    Función genérica que permite definir muchas funciones matemáticas
-
-    Para definir algo como f(x) = arcsin(sin(x^2) - .1) * 2, haríamos:
-        g = Function(np.sin, X(pow=C(2)) - C(.1))
-        f = Function(np.arcsin, g) * C(2)
-        
-    (es necesario que function sea una función que acepte un array de numpy como input y devuelva otro array de numpy) 
-    '''
-    def __init__(self, function, inside=0):
-        super().__init__()
-        self.inside = C(inside)
-        self.function = function
-        
-    def fun(self, tiempo):
-        return self.function(self.inside.next(tiempo))
-          
-    # Como es un poco complejo, a continuación he desarrollado algunas funciones
-    # de onda comunes como Sine, Triangle y Sawtooth. 
-        
 ''' 
     Podemos ver la frecuencia como el valor dentro del seno por el cual 
     multiplicamos el tiempo y la fase el valor que sumamos al tiempo*freq.

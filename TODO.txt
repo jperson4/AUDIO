@@ -1,1 +1,1 @@
-seña que sea un bool
+hacer que Signal * Float devuelva Signal
