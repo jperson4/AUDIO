@@ -1,5 +1,6 @@
 from audio.const import *
 from audio.signal import *
+from audio.filter import *
 import numpy as np
 
 # osciladores y generadores que devuelven señales que en principio deben usarse para generar sonido
@@ -86,37 +87,44 @@ class Noise(Signal):
         
     def fun(self, tiempo):
         _amp = self.amp.next(tiempo) 
-        return _amp * np.random.uniform(-1, 1, len(tiempo))
-    
-class Sampler(Signal):
-    ''' Reproduce un array de numpy como si fuera una señal '''
-    def __init__(self, sample: np.ndarray, speed=1, loop=False, play=True):
+        return _amp * np.random.uniform(-1, 1, len(tiempo)) 
+            
+class KS(Signal):
+    def __init__(self, freq=440, input=Noise(), filter=LP2, filter_p = 2):
         super().__init__()
-        self.sample = sample
-        self.speed = C(speed)
-        self.loop = loop
-        self.play = play
-        
+        self.input = input
+        self.filter = filter
+        self.out = input
+        self.p = 2
+        self.dir = 1
+    
     def fun(self, tiempo):
-        if not self.play:
-            return np.zeros(len(tiempo))
+        self.frame = 0
+        self.p = self.p * (1 + .05 * self.dir)
+        if self.p > len(tiempo)-5:
+            self.p = len(tiempo) - 6
+            self.dir = -1
+        elif self.p < 2:
+            self.dir = 1
+            self.p = 2    
+            
+        self.out = self.filter(self.input, p=int(self.p))
+        return self.out.next(tiempo)
         
-        _speed = self.speed.next(tiempo) # cuanto avanzamos en cada muestra
+class KarpusStrong(Signal):
+    # TODO: encontrar la manera de hacer que la frecuencia sea modulable, supongo que tocara cambiar el buffer o yo que se
+    def __init__(self, freq=440, input=Noise(), filter=LP2(input=None), factor=10):
+        super().__init__()
+        self.buffer = input.next(np.arange(0, SRATE//freq)) 
+        self.filter = filter
+        # self.p = 2
+        # self.dir = 1
+    
+    def fun(self, tiempo):
+        _index = np.arange(self.frame-len(tiempo), self.frame) % len(self.buffer)
+        _out = self.buffer[_index]
+        _fout = self.filter.filter(_out)
+        self.buffer[_index] = _fout
+        return _fout
         
-        if isinstance(_speed, (int, float)):
-            _speed = np.repeat(_speed, len(tiempo))
-        _pos = np.cumsum(_speed)
         
-        if self.loop:
-            _pos = np.mod(_pos, len(self.sample))
-        else:
-            if np.any(_pos >= len(self.sample)):
-                self.play = False
-            _pos = np.clip(_pos, 0, len(self.sample)-1)
-        
-        _indices = np.arange(len(self.sample))
-        _out = np.interp(_pos, _indices, self.sample) 
-        
-        # hay que actualizar el frame para que el tiempo vaya con la velocidad
-        self.frame = int(_pos[-1]) + 1
-        return _out
