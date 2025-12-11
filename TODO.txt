@@ -2,3 +2,5 @@ check kS y los filtros
 hacer un high pass filter
 solucionar el problema de clicks en wavetable
 cambiar sampler para que use wavetable
+
+En algun momento podría traducir las cosas al ingles :p
