@@ -1,21 +1,4 @@
-en el filtro, cambiar p a una señal y añadirle que no pueda ser menor que 1
-
-para cuando p sea un decimal, por ejemplo 2.5, haga (y1 + y2 + y3 * .5) / 2.5
-
-   def fun(self, tiempo):
-        _alpha = self.alpha.next(tiempo)
-        _in = self.input.next(tiempo)
-        
-        # Concatenar memoria
-        _sig = np.concatenate((self.mem, _in))
-        
-        # Promedio móvil fraccional
-        _fsig = fractional_moving_average(_sig, self.p)
-        
-        # Ajustar longitud para coincidir con _in
-        _fsig = _fsig[-len(_in):]
-        
-        # Actualizar memoria
-        self.mem = _sig[-(int(np.ceil(self.p))-1):]
-        
-        return _in * (1-_alpha) + _fsig * _alpha
+check kS y los filtros
+hacer un high pass filter
+solucionar el problema de clicks en wavetable
+cambiar sampler para que use wavetable
