@@ -8,7 +8,11 @@ class Wavetable(Signal):
         Wavetable, reproduce una onda dada en bucle
         segun una frecuencia amplitud y fase dadas
         
-        Para minimizar 
+        Para ondas simples solo es necesaria una oscilación ya que ciclarán bien
+        pero para ondas más complejas puede ser necesario más de una oscilacion
+        
+        crossfade intenta que la onda cicle más suavemente
+         
     '''
     def __init__(self, table: np.ndarray, freq=1, amp=1, phase=0, crossfade=0, num_osc=1):
         super().__init__()
@@ -20,12 +24,26 @@ class Wavetable(Signal):
         self.freq = C(freq)
         self.amp = C(amp)
         self.phase = C(phase)
+    
+    def fun(self, tiempo):
+        _freq = self.freq.next(tiempo) # para que freq esté en Hz
+        _amp = self.amp.next(tiempo) 
+        _phase = self.phase.next(tiempo) # TODO fix fase es muy pequeña por alguna razon
         
+        # indices para hacer la interpolación
+        indices = (_freq * tiempo) + _phase
+        indices = np.mod(indices, len(self.table)) 
+        _out = np.interp(indices, np.arange(len(self.table)), self.table)
+        return _amp * _out
+
         
     def cicletable(self, table: np.ndarray, crossfade) -> np.ndarray:
-        ''' Asegura que la tabla ciclará bien haciendo crossfade entre el final y el principio '''
+        '''
+            Asegura que la tabla ciclará bien haciendo crossfade entre el final y el principio,
+            para esto es necesario que num_osc sea >1 y así tener datos para hacer el crossfade
+        '''
         mid = self.find_point_0(table)
-        mid = len(table)//self.num_osc
+        # mid = len(table)//self.num_osc
         
         main = table[:mid] # primera mitad de la tabla
         cross = table[mid: mid + crossfade] # parte a mezclar
@@ -37,7 +55,7 @@ class Wavetable(Signal):
         return main
     
     def find_point_0(self, table):
-        ''' Encuentra el punto más cercano a 0'''
+        ''' Encuentra el punto más cercano a 0, por si numosc no es lo suficientemente preciso'''
         mid = len(table) //self.num_osc
         pos = mid
         best_amp = abs(table[mid])
@@ -48,29 +66,19 @@ class Wavetable(Signal):
                 pos = i
         return pos
 
-        
-    def fun(self, tiempo):
-        _freq = self.freq.next(tiempo)  # para que freq esté en Hz
-        _amp = self.amp.next(tiempo) 
-        _phase = self.phase.next(tiempo)
-        
-        # indices para hacer la interpolación
-        indices = (_freq * tiempo) + _phase
-        indices = np.mod(indices, len(self.table)) 
-        _out = np.interp(indices, np.arange(len(self.table)), self.table)
-        return _amp * _out
-
 class WT(Wavetable):
     ''' 
-        Sampler simple, reproduce un array de numpy en bucle,
-        podemos contrlolar la frecuencia, la amplitud y la fase
-        Sería una especie de wavetable
+        Wavetable, reproduce una onda dada en bucle
+        segun una frecuencia amplitud y fase dadas
         
-        En caso de samplear ondas (usandolo como wavetable), lo mejor es usar frecuencia 1 
-        ya que habrá una buena resolución y ciclará bien.
+        Para ondas simples solo es necesaria una oscilación ya que ciclarán bien
+        pero para ondas más complejas puede ser necesario más de una oscilacion
+        
+        crossfade intenta que la onda cicle más suavemente
+         
     '''
-    def __init__(self, table: np.ndarray, freq=1, amp=1, phase=0, crossfade=10):
-        super().__init__(table, freq, amp, phase, crossfade)
+    def __init__(self, table: np.ndarray, freq=1, amp=1, phase=0, crossfade=0, num_osc=1):
+        super().__init__(table=table, freq=freq, amp=amp, phase=phase, crossfade=crossfade, num_osc=num_osc)
 
 class Sampler(Signal):
     ''' 
