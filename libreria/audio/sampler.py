@@ -28,7 +28,7 @@ class Wavetable(Signal):
     def fun(self, tiempo):
         _freq = self.freq.next(tiempo) # para que freq esté en Hz
         _amp = self.amp.next(tiempo) 
-        _phase = self.phase.next(tiempo) # TODO fix fase es muy pequeña por alguna razon
+        _phase = self.phase.next(tiempo) * len(self.table) / (2 * np.pi) # hay que pasar la radianes
         
         # indices para hacer la interpolación
         indices = (_freq * tiempo) + _phase
