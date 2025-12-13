@@ -17,7 +17,7 @@ class Wavetable(Signal):
     def __init__(self, table: np.ndarray, freq=1, amp=1, phase=0, crossfade=0, num_osc=1):
         super().__init__()
         self.num_osc = num_osc
-        if crossfade > 0:
+        if crossfade > 0: # TODO no se si quitarlo
             self.table = self.cicletable(table, crossfade)
         else:
             self.table = table
@@ -89,20 +89,35 @@ class Sampler(Signal):
     def __init__(self, sample: np.ndarray, speed=1, loop=False, play=True):
         super().__init__()
         self.sample = sample
+        np.append(self.sample, [0]) # inserta un 0 al final del sample para quedarse ahi si no hay loop
         self.speed = C(speed)
         self.loop = loop
-        if loop:
-            self.sample = np.concatenate((self.sample, self.sample[:1]))
         self.play = play
         
     def fun(self, tiempo):
+        # similar a la de WT
+        if not self.play:
+            return np.zeros(len(tiempo))
+        
+        _speed = self.speed.next(tiempo)
+        _pos = _speed * tiempo
+        # _pos = np.cumsum(_speed)
+        if self.loop:
+            _pos = np.mod(_pos, len(self.sample) - 1) 
+        else:
+            if np.any(_pos >= len(self.sample)):
+                self.play = False
+            _pos = np.clip(_pos, a_min=None, a_max=len(self.sample)) # clipeará en la ultima posicion que es un 0
+        _out = np.interp(_pos, np.arange(len(self.sample)), self.sample)
+        # self.frame = int(_pos[-1]) + 1
+        return _out
+        
+    def fun_old(self, tiempo):
         if not self.play:
             return np.zeros(len(tiempo))
         
         _speed = self.speed.next(tiempo) # cuanto avanzamos en cada muestra
         
-        if isinstance(_speed, (int, float)):
-            _speed = np.repeat(_speed, len(tiempo))
         _pos = np.cumsum(_speed)
         
         if self.loop:
