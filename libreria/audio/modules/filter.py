@@ -1,5 +1,5 @@
-from audio.const import *
-from audio.signal import *
+from audio.modules.const import *
+from audio.modules.signal import *
 import numpy as np
 
 class Filter(Signal):

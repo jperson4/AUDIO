@@ -1,5 +1,5 @@
-from audio.const import *
-from audio.signal import *
+from audio.modules.const import *
+from audio.modules.signal import *
 import numpy as np
 
 # señales que en principio deben usarse para controlar otras señales y el sonido

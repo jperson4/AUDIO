@@ -1,6 +1,6 @@
-from audio.const import *
-from audio.signal import *
-from audio.filter import *
+from audio.modules.const import *
+from audio.modules.signal import *
+from audio.modules.filter import *
 import numpy as np
 
 # osciladores y generadores que devuelven señales que en principio deben usarse para generar sonido

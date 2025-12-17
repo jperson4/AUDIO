@@ -1,4 +1,4 @@
-from audio.const import *
+from audio.modules.const import *
 import numpy as np
 
 # señales base y operaciones entre señales
