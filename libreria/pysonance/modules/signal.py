@@ -48,6 +48,26 @@ class Signal:
         power = C(power)
         return Pow(self, power)
     
+    def __radd__(self, other):
+        other = C(other)
+        return Add(other, self)
+
+    def __rsub__(self, other):
+        other = C(other)
+        return Sub(other, self)
+
+    def __rmul__(self, other):
+        other = C(other)
+        return Mul(other, self)
+
+    def __rtruediv__(self, other):
+        other = C(other)
+        return Div(other, self)
+
+    def __rpow__(self, other):
+        other = C(other)
+        return Pow(other, self)
+    
 class Add(Signal):
     def __init__(self, a, b):
         super().__init__()
