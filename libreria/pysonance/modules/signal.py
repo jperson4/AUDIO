@@ -1,4 +1,4 @@
-from audio.modules.const import *
+from pysonance.modules.const import *
 import numpy as np
 
 # señales base y operaciones entre señales

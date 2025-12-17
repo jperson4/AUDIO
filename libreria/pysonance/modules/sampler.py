@@ -1,6 +1,6 @@
 import numpy as np
-from audio.modules.const import *
-from audio.modules.signal import *
+from pysonance.modules.const import *
+from pysonance.modules.signal import *
 
 
 class Wavetable(Signal):
