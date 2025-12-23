@@ -1,5 +1,5 @@
-from pysonance.modules.const import *
-from pysonance.modules.signal import *
+from pysonance.const import *
+from pysonance.signal import *
 import numpy as np
 
 # señales que en principio deben usarse para controlar otras señales y el sonido

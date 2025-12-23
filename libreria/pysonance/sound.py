@@ -1,6 +1,6 @@
-from pysonance.modules.const import *
-from pysonance.modules.signal import *
-from pysonance.modules.filter import *
+from pysonance.const import *
+from pysonance.signal import *
+from pysonance.filter import *
 import numpy as np
 
 # osciladores y generadores que devuelven señales que en principio deben usarse para generar sonido

@@ -1,6 +1,6 @@
 import numpy as np
-from pysonance.modules.const import *
-from pysonance.modules.signal import *
+from pysonance.const import *
+from pysonance.signal import *
 
 
 class Wavetable(Signal):

@@ -1,4 +1,4 @@
-from pysonance.modules.const import *
+from pysonance.const import *
 import numpy as np
 
 # señales base y operaciones entre señales
@@ -176,3 +176,5 @@ class Function(Signal):
           
     # Como es un poco complejo, a continuación he desarrollado algunas funciones
     # de onda comunes como Sine, Triangle y Sawtooth. 
+    
+pulsectl
