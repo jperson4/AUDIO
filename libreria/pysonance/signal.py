@@ -176,5 +176,3 @@ class Function(Signal):
           
     # Como es un poco complejo, a continuación he desarrollado algunas funciones
     # de onda comunes como Sine, Triangle y Sawtooth. 
-    
-pulsectl
