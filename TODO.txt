@@ -25,6 +25,8 @@ check kS y los filtros
 hacer un high pass filter
 hacer un filtro usando fourier
 
+hacer los filtros usando scipy
+
 # SECUENCIADOR - MIDI:
 en helvium tambien se puede controlar el MIDI
 deberia hacer una clase que mande Una señal cada negra (reloj)
