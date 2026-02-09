@@ -175,4 +175,5 @@ class Function(Signal):
         return self.function(self.inside.next(tiempo))
           
     # Como es un poco complejo, a continuación he desarrollado algunas funciones
-    # de onda comunes como Sine, Triangle y Sawtooth. 
+    # de onda comunes como Sine, Triangle y Sawtooth.
+    
