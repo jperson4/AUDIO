@@ -77,12 +77,12 @@ class Knob:
         return Knob_Pow(other, self)
     
     def fun(self, frame):
-        return self.value
+        return self.valor
     
 class K(Knob):
     
-    def __init__(self, value=0):
-        super().__init__(value)
+    def __init__(self, valor=0):
+        super().__init__(valor)
         
 class Knob_Add(Signal):
     def __init__(self, a, b):

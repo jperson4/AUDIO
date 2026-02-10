@@ -2,15 +2,13 @@ from pysonance.const import *
 from pysonance.signal import *
 from pysonance.control.knob import *
 import numpy as np
-from copy import copy
 
-# TODO revisar
 class FromToIn(Signal):
     '''
     Define una linea recta que pasa por n puntos
 
     Recibe lista de alturas (knobs)
-    Lista de tiempos (s) (knobs)
+    Lista de tiempos (s) (knobs) (no aditiva)
     ''' 
     def __init__(self, amps:list, times:list):
         super().__init__()
@@ -20,53 +18,88 @@ class FromToIn(Signal):
         for a in amps:
             self.amps.append(K(a))
         
-        self.times = []
+        self.times = [K(0)]
         old_t = K(0)
         for t in times:
-            self.times.append(K(t) + old_t) 
-        
+            kt = K(t)
+            self.times.append(kt + old_t)
+            old_t = kt
+
+        self.times.append(old_t) # TODO por alguna razon funciona con un punto extra al final, revisar
+
+        for t in self.times:
+            print(t.next(self.knob_frame))
+
     def fun(self, tiempo):
+
+        _positions = []
+        _tfrom = tiempo[0]
+        _tto = tiempo[-1]
+
+        # buscamos los indices de tiempos entre los que se encuentra el frame
+        # a0 - t0 - a1 - t1 - a2 - t2 - a3
+        # A = [a0, a1, a2, a3]
+        # T = [0, t0, t0+t1, t0+t1+t2]
+
+        _ifrom = 0
+        _ito = 0
+
         _in = False
-        pos = [] # lista de las posiciones entre las que se encuentra el frame
-        _tfrom = self.tiempo[0]
-        _tto = self.tiempo[-1]
-        cola = np.array([])
-        
-        # caso 1, si nos pasamos
+
+        # caso 0: si nos pasamos desde el principio, devolvemos el ultimo valor
         if _tfrom >= self.times[-1].next(self.knob_frame):
             return np.full(len(tiempo), self.amps[-1].next(self.knob_frame))
-        
-        # caso 2, estamos dentro de los limites
-        _p = 0
-        for t in self.times:
-            _t = t.next(self.knob_frame)
-            if _tfrom >= _t:
-                pos.append((self.amps[_p], self.amps[_p+1], self.times[_p]))
-            if _tto > _t:
-                break # parar
-            _p += 1
-        
-        interval = np.array([]) 
-        for _p in range(len(pos)):
-            _a0, _a1, _t = pos[_p]
-            interval = np.concatenate(_a0, _a1, _t)
-            
-        # caso 3, acabamos pasandonos
-        if _tto > self.times[-1].next(self.knob_frame):
-            cola = np.full(len(tiempo), self.amps[-1].next(self.knob_frame))    
-        
-        interval = np.concatenate(interval, cola)
-        
-        self.knob_frame += 1
-        return super().fun(tiempo)
 
-    def fromtoin(self, a0:Knob, a1:Knob, t:Knob):
+        # caso 1: estamos dentro de los limites, buscamos los indices entre los que se encuentra el frame
+
+        amps = []
+        times = []
+
+        for t in self.times:
+            _tact = t.next(self.knob_frame) * SRATE
+            if not _in: # aun no estamos en el rango
+                if _tfrom <= _tact: # hemos encontrado el primer punto, guardamos el indice y pasamos a buscar el _to
+                    _in = True
+                    _ito = _ifrom
+                else:
+                    _ifrom += 1
+            elif _in: # ya estamos en el rango
+                amps.append(self.amps[_ito].next(self.knob_frame))
+                times.append(self.times[_ito].next(self.knob_frame))
+                if _tto < _tact: # nos hemos pasado del ultimo punto, guardamos el indice
+                    break
+                else: # no hemos llegado al final del rango, seguimos buscando
+                    _ito += 1
+
+        ret = np.array([])
+
+        for i in range(len(amps)-1):
+            _a0 = amps[i]
+            _a1 = amps[i+1]
+            _tact = int((times[i+1] - times[i]))
+            ret = np.concatenate((ret, self.fromtoin(_a0, _a1, _tact)))
+
+        # caso 2: ya nos hemos pasado del ultimo punto, acopamos el ultimo valor al final del array
+        cola = np.array([])
+        if times[-1] < _tto:
+            cola = np.full(len(tiempo) - len(ret), amps[-1])
+
+        self.knob_frame += 1
+
+        return np.concatenate((ret, cola))
+
+    def fromtoin_knob(self, a0:Knob, a1:Knob, t:Knob):
         ''' devuelve una linea (array) de a0 a a1 en longitud t'''
         _a0 = a0.next(self.knob_frame)
         _a1 = a1.next(self.knob_frame)
         _t = int(t.next(self.knob_frame) * SRATE)
         return np.linspace(_a0, _a1, _t)
     
+    def fromtoin(self, a0, a1, t):
+        _t = int(t * SRATE)
+        ''' devuelve una linea (array) de a0 a a1 en longitud t'''
+        return np.linspace(a0, a1, _t)
+
     def reset(self):
         super().reset()
         self.knob_frame = 0
